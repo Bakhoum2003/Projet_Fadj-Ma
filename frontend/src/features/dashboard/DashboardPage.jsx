@@ -1,43 +1,35 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import PageHeader from '../../components/layout/PageHeader.jsx'
 import StatCard from './StatCard.jsx'
 import { getDashboardStats } from '../../services/dashboardService.js'
 import { getMedicines } from '../../services/medicineService.js'
-import { useToast } from '../../components/ui/useToast.js'
 
 function DashboardPage({ onNavigate, onUnauthorized }) {
   const [stats, setStats] = useState(null)
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [hasError, setHasError] = useState(false)
-  const showToast = useToast()
+  const [error, setError] = useState('')
+
+  const loadDashboard = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const [statsResponse, medicinesResponse] = await Promise.all([getDashboardStats(), getMedicines()])
+      const threshold = statsResponse.data.lowStockThreshold
+      setStats(statsResponse.data)
+      setAlerts(medicinesResponse.data.filter((medicine) => medicine.quantity <= threshold))
+    } catch (requestError) {
+      if (requestError.status === 401) onUnauthorized()
+      else setError(requestError.message || 'Impossible de charger le tableau de bord.')
+    } finally {
+      setLoading(false)
+    }
+  }, [onUnauthorized])
 
   useEffect(() => {
-    let active = true
-
-    async function loadDashboard() {
-      setLoading(true)
-      setHasError(false)
-      try {
-        const [statsResponse, medicinesResponse] = await Promise.all([getDashboardStats(), getMedicines()])
-        if (!active) return
-        const threshold = statsResponse.data.lowStockThreshold
-        setStats(statsResponse.data)
-        setAlerts(medicinesResponse.data.filter((medicine) => medicine.quantity <= threshold))
-      } catch (requestError) {
-        if (requestError.status === 401) onUnauthorized()
-        else if (active) {
-          setHasError(true)
-          showToast(requestError.message || 'Impossible de charger le tableau de bord.', 'error')
-        }
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-
-    loadDashboard()
-    return () => { active = false }
-  }, [onUnauthorized, showToast])
+    const requestId = window.setTimeout(loadDashboard, 0)
+    return () => window.clearTimeout(requestId)
+  }, [loadDashboard])
 
   const statistics = stats ? [
     { label: 'Médicaments répertoriés', value: stats.totalMedicines, detail: 'Dans l’inventaire', tone: 'sky', symbol: '✚' },
@@ -52,7 +44,9 @@ function DashboardPage({ onNavigate, onUnauthorized }) {
 
       {loading && <p className="mt-7 rounded-xl bg-white px-5 py-4 text-sm font-medium text-slate-500 ring-1 ring-slate-200/70">Chargement des statistiques…</p>}
 
-      {!loading && !hasError && <>
+      {!loading && error && <section className="mt-7 rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200/70"><p className="text-sm font-medium text-slate-700">{error}</p><button type="button" onClick={loadDashboard} className="mt-4 h-11 rounded-xl bg-[#0b83a8] px-4 text-sm font-bold text-white transition hover:bg-[#086e91]">Réessayer</button></section>}
+
+      {!loading && !error && <>
         <section className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {statistics.map((stat) => <StatCard key={stat.label} stat={stat} />)}
         </section>

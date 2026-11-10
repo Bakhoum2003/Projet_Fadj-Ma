@@ -22,19 +22,21 @@ function MedicinesPage({ onUnauthorized }) {
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [query, setQuery] = useState('')
+  const [loadError, setLoadError] = useState('')
   const showToast = useToast()
 
   const loadMedicines = useCallback(async () => {
+    setLoadError('')
     try {
       const response = await getMedicines()
       setMedicineList(response.data.map((medicine) => ({ ...medicine, status: getStatus(medicine.quantity) })))
     } catch (requestError) {
       if (requestError.status === 401) onUnauthorized()
-      else showToast(requestError.message || 'Impossible de charger les médicaments.', 'error')
+      else setLoadError(requestError.message || 'Impossible de charger les médicaments.')
     } finally {
       setLoading(false)
     }
-  }, [onUnauthorized, showToast])
+  }, [onUnauthorized])
 
   // oxlint-disable-next-line react/set-state-in-effect -- la mise à jour intervient après la requête réseau.
   useEffect(() => { loadMedicines() }, [loadMedicines])
@@ -97,7 +99,7 @@ function MedicinesPage({ onUnauthorized }) {
 
       <section className="mt-7 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70 sm:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><label className="relative block md:w-80"><span className="sr-only">Rechercher un médicament</span><span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100" placeholder="Rechercher dans l’inventaire" /></label><button type="button" onClick={() => { setLoading(true); loadMedicines() }} className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">Actualiser</button></div>
-        {loading ? <p className="py-12 text-center text-sm text-slate-500">Chargement des médicaments…</p> : filteredMedicines.length === 0 ? <p className="py-12 text-center text-sm text-slate-500">Aucun médicament ne correspond à votre recherche.</p> : <div className="mt-5"><MedicineTable medicines={filteredMedicines} onViewDetails={setSelectedMedicine} /></div>}
+        {loading ? <p className="py-12 text-center text-sm text-slate-500">Chargement des médicaments…</p> : loadError ? <div className="py-12 text-center"><p className="text-sm font-medium text-slate-700">{loadError}</p><button type="button" onClick={() => { setLoading(true); loadMedicines() }} className="mt-4 h-11 rounded-xl bg-[#0b83a8] px-4 text-sm font-bold text-white transition hover:bg-[#086e91]">Réessayer</button></div> : filteredMedicines.length === 0 ? <p className="py-12 text-center text-sm text-slate-500">Aucun médicament ne correspond à votre recherche.</p> : <div className="mt-5"><MedicineTable medicines={filteredMedicines} onViewDetails={setSelectedMedicine} /></div>}
         <footer className="pt-5 text-sm text-slate-500">{loading ? '' : `${filteredMedicines.length} résultat${filteredMedicines.length > 1 ? 's' : ''} affiché${filteredMedicines.length > 1 ? 's' : ''}`}</footer>
       </section>
       {isFormOpen && <MedicineFormModal medicine={editingMedicine} onClose={() => { setIsFormOpen(false); setEditingMedicine(null) }} onSave={handleSave} />}
