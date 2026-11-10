@@ -5,7 +5,7 @@ const navigation = [
   { id: 'medicines', label: 'Médicaments', icon: '▣' },
 ]
 
-function Sidebar({ currentPage, onNavigate }) {
+function Sidebar({ currentPage, onNavigate, onLogout }) {
   return (
     <aside className="shrink-0 bg-[#12365a] text-white lg:flex lg:min-h-screen lg:w-72 lg:flex-col">
       <div className="border-b border-white/10 px-5 py-5 lg:px-7 lg:py-7">
@@ -34,7 +34,7 @@ function Sidebar({ currentPage, onNavigate }) {
           <p className="text-xs font-semibold uppercase tracking-wider text-cyan-200">Fadj-Ma</p>
           <p className="mt-2 text-sm leading-5 text-blue-100/75">La gestion de votre pharmacie, en toute simplicité.</p>
         </div>
-        <button type="button" onClick={() => onNavigate('login')} className="mt-5 flex items-center gap-2 text-sm font-semibold text-blue-100/80 transition hover:text-white">
+        <button type="button" onClick={onLogout} className="mt-5 flex items-center gap-2 text-sm font-semibold text-blue-100/80 transition hover:text-white">
           <span aria-hidden="true">←</span> Déconnexion
         </button>
       </div>
