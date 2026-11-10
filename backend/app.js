@@ -1,3 +1,4 @@
+const connectDB = require('./src/config/db');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -14,6 +15,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(morgan('dev'));
+
+// Connexion MongoDB avant le traitement des requêtes.
+// Les tests utilisent des modèles simulés et ne doivent pas contacter MongoDB.
+app.use(async (req, res, next) => {
+  if (process.env.NODE_ENV === 'test') {
+    return next();
+  }
+
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get(['/api/health', '/api/v1/health'], (req, res) => {
   res.status(200).json({
