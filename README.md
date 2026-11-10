@@ -1,17 +1,91 @@
-# React + Vite
+# Fadj-Ma
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Application de gestion pharmaceutique composée d’un frontend React et d’une API REST Node.js.
 
-Currently, two official plugins are available:
+## Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```text
+Fadj-Ma/
+├── frontend/                 # Application React + Vite
+│   ├── public/
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.js
+├── backend/                  # API Express + MongoDB/Mongoose
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middlewares/
+│   │   ├── models/
+│   │   └── routes/
+│   ├── tests/
+│   ├── package.json
+│   └── .env.example
+├── .gitignore
+└── README.md
+```
 
-## React Compiler
+## Technologies
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Frontend : React 19, Vite 8, Tailwind CSS 4.
+- Backend : Node.js (>= 18), Express, MongoDB Atlas/Mongoose, JWT et bcryptjs.
+- Tests backend : Jest et Supertest.
 
-## Expanding the Oxlint configuration
+## Installation
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Installez les dépendances séparément pour chaque application :
 
+```bash
+cd frontend
+npm install
+
+cd ../backend
+npm install
+```
+
+## Configuration backend
+
+Copiez `backend/.env.example` vers `backend/.env`, puis renseignez les valeurs adaptées à votre environnement :
+
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=<uri MongoDB Atlas ou locale>
+JWT_SECRET=<secret long et aléatoire>
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:5173
+LOW_STOCK_THRESHOLD=10
+```
+
+Ne versionnez jamais `backend/.env`. Le fichier exemple ne contient aucun secret exploitable.
+
+## Démarrer les applications
+
+Dans deux terminaux distincts :
+
+```bash
+cd frontend
+npm run dev
+```
+
+Vite est disponible par défaut sur `http://localhost:5173`.
+
+```bash
+cd backend
+npm run dev
+```
+
+L’API écoute par défaut sur `http://localhost:5000`. L’endpoint de santé est `GET /api/v1/health`.
+
+## Vérifications
+
+```bash
+cd frontend
+npm run lint
+npm run build
+
+cd ../backend
+npm test
+```
+
+Le frontend n’est pas encore connecté à l’API : ses données de démonstration sont volontairement conservées pendant cette phase.
