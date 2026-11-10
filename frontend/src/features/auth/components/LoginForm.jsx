@@ -1,22 +1,22 @@
 import { useState } from 'react'
 import InputField from './InputField.jsx'
 import { loginUser } from '../../../services/authService.js'
+import { useToast } from '../../../components/ui/useToast.js'
 
 function LoginForm({ onLogin }) {
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const showToast = useToast()
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
       const response = await loginUser(form)
       onLogin(response.user)
     } catch (requestError) {
-      setError(requestError.message || 'La connexion a échoué.')
+      showToast(requestError.message || 'La connexion a échoué.', 'error')
     } finally {
       setLoading(false)
     }
@@ -24,7 +24,6 @@ function LoginForm({ onLogin }) {
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
-      {error && <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-100">{error}</p>}
       <InputField label="Adresse e-mail" id="login-email" type="email" placeholder="vous@pharmacie.com" autoComplete="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} disabled={loading} />
       <div>
         <InputField label="Mot de passe" id="login-password" type="password" placeholder="••••••••" autoComplete="current-password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} disabled={loading} />

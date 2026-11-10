@@ -41,14 +41,13 @@ function MedicineFormModal({ medicine, onClose, onSave }) {
 
     setLoading(true)
     try {
-      await onSave({
+      const saved = await onSave({
         ...form,
         name: form.name.trim(), price, quantity,
         activeIngredients: form.activeIngredients.split(',').map((item) => item.trim()).filter(Boolean),
         sideEffects: form.sideEffects.split(',').map((item) => item.trim()).filter(Boolean),
       })
-    } catch (requestError) {
-      setError(requestError.message || 'Impossible d’enregistrer le médicament.')
+      if (!saved) return
     } finally {
       setLoading(false)
     }

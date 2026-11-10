@@ -3,19 +3,21 @@ import PageHeader from '../../components/layout/PageHeader.jsx'
 import StatCard from './StatCard.jsx'
 import { getDashboardStats } from '../../services/dashboardService.js'
 import { getMedicines } from '../../services/medicineService.js'
+import { useToast } from '../../components/ui/useToast.js'
 
 function DashboardPage({ onNavigate, onUnauthorized }) {
   const [stats, setStats] = useState(null)
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [hasError, setHasError] = useState(false)
+  const showToast = useToast()
 
   useEffect(() => {
     let active = true
 
     async function loadDashboard() {
       setLoading(true)
-      setError('')
+      setHasError(false)
       try {
         const [statsResponse, medicinesResponse] = await Promise.all([getDashboardStats(), getMedicines()])
         if (!active) return
@@ -24,7 +26,10 @@ function DashboardPage({ onNavigate, onUnauthorized }) {
         setAlerts(medicinesResponse.data.filter((medicine) => medicine.quantity <= threshold))
       } catch (requestError) {
         if (requestError.status === 401) onUnauthorized()
-        else if (active) setError(requestError.message || 'Impossible de charger le tableau de bord.')
+        else if (active) {
+          setHasError(true)
+          showToast(requestError.message || 'Impossible de charger le tableau de bord.', 'error')
+        }
       } finally {
         if (active) setLoading(false)
       }
@@ -32,7 +37,7 @@ function DashboardPage({ onNavigate, onUnauthorized }) {
 
     loadDashboard()
     return () => { active = false }
-  }, [onUnauthorized])
+  }, [onUnauthorized, showToast])
 
   const statistics = stats ? [
     { label: 'Médicaments répertoriés', value: stats.totalMedicines, detail: 'Dans l’inventaire', tone: 'sky', symbol: '✚' },
@@ -45,10 +50,9 @@ function DashboardPage({ onNavigate, onUnauthorized }) {
     <div className="mx-auto max-w-7xl px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
       <PageHeader eyebrow="Vue d’ensemble" title="Tableau de bord" description="Suivez les données réelles de votre inventaire." />
 
-      {error && <p role="alert" className="mt-6 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-100">{error}</p>}
       {loading && <p className="mt-7 rounded-xl bg-white px-5 py-4 text-sm font-medium text-slate-500 ring-1 ring-slate-200/70">Chargement des statistiques…</p>}
 
-      {!loading && !error && <>
+      {!loading && !hasError && <>
         <section className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {statistics.map((stat) => <StatCard key={stat.label} stat={stat} />)}
         </section>

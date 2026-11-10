@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import InputField from './InputField.jsx'
 import { registerUser } from '../../../services/authService.js'
+import { useToast } from '../../../components/ui/useToast.js'
 
 const days = Array.from({ length: 31 }, (_, index) => index + 1)
 const months = [
@@ -22,21 +23,18 @@ const years = Array.from({ length: 107 }, (_, index) => 2026 - index)
 function RegisterForm() {
   const [form, setForm] = useState({ gender: '', firstName: '', lastName: '', day: '', month: '', year: '', email: '', password: '', confirmPassword: '' })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const showToast = useToast()
 
   const update = (name) => (event) => setForm((current) => ({ ...current, [name]: event.target.value }))
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setError('')
-    setSuccess('')
     if (form.password !== form.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas.')
+      showToast('Les mots de passe ne correspondent pas.', 'warning')
       return
     }
     if (!form.gender || !form.day || !form.month || !form.year) {
-      setError('Veuillez renseigner toutes vos coordonnées et votre date de naissance.')
+      showToast('Veuillez renseigner toutes vos coordonnées et votre date de naissance.', 'warning')
       return
     }
 
@@ -50,9 +48,9 @@ function RegisterForm() {
         email: form.email,
         password: form.password,
       })
-      setSuccess('Inscription réussie. Vous pouvez maintenant vous connecter.')
+      showToast('Inscription réussie. Vous pouvez maintenant vous connecter.', 'success')
     } catch (requestError) {
-      setError(requestError.message || "L'inscription a échoué.")
+      showToast(requestError.message || "L'inscription a échoué.", 'error')
     } finally {
       setLoading(false)
     }
@@ -60,8 +58,6 @@ function RegisterForm() {
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
-      {error && <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-100">{error}</p>}
-      {success && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 ring-1 ring-emerald-100">{success}</p>}
       <fieldset>
         <legend className="mb-2 text-sm font-semibold text-slate-700">Vos coordonnées</legend>
         <div className="flex gap-3">
