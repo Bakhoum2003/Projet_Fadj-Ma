@@ -31,17 +31,9 @@ Fadj-Ma/
 - Backend : Node.js (>= 18), Express, MongoDB Atlas/Mongoose, JWT et bcryptjs.
 - Tests backend : Jest et Supertest.
 
-## Installation
 
-Installez les dépendances séparément pour chaque application :
 
-```bash
-cd frontend
-npm install
 
-cd ../backend
-npm install
-```
 
 
 
